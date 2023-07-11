@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: ${{ values.module | dump }}
+  description: ${{ values.description | dump }}
+spec:
+  owner: user:guest
+  domain: platform

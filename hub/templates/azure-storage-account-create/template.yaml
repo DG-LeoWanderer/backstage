@@ -1,0 +1,69 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: azure-storage-account-create
+  title: Create Azure Storage Account
+  description: Creates an Azure storage account in the specified module
+spec:
+  owner: user:guest
+  type: component
+  parameters:
+    - title: Let's create your new storage account
+      required:
+        - name
+        - module
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          maxLength: 10
+          pattern: '^([a-zA-Z]{3}[a-zA-Z0-9]*)$'
+        module:
+          title: Module
+          type: string
+          description: Name of your module
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              kind: System
+            defaultKind: System
+        owner:
+          title: GitHub owner
+          type: string
+          description: The organization, user or project that the repo belongs to
+        geoReplicationEnabled: 
+          title: Enable Geo-Replication
+          type: boolean
+          default: false
+  steps:
+    - id: get-entity
+      name: Retrieve Module
+      action: catalog:fetch
+      input:
+        entityRef: ${{ parameters.module }}
+        defaultKind: System
+    - id: fetch-base
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./skeleton
+        targetPath: ./azure-storage-accounts/${{ parameters.name }}
+        values:
+          name: ${{ parameters.name }}
+          module: ${{ steps['get-entity'].output.entity.metadata.name }}
+          owner: ${{ parameters.owner }}
+          geoReplicationEnabled: ${{ parameters.geoReplicationEnabled }}
+    - id: publish
+      name: Publish
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?repo=Md.${{ steps['get-entity'].output.entity.metadata.name }}&owner=${{ parameters.owner }}
+        branchName: storage-account-${{ parameters.name }}
+        title: Create storage account ${{ parameters.name }}
+        description: Approve this PR to create the storage account ${{ parameters.name }}
+  output:
+    links:
+      - title: Pull Request
+        url: ${{ steps['publish'].output.remoteUrl }}

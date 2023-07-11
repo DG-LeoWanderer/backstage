@@ -1,0 +1,3 @@
+name: storage-account
+runtime: nodejs
+description: An Azure storage account
